@@ -1,26 +1,59 @@
 import { Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { Order } from './interface/order.interface';
 
 @Injectable()
 export class OrderService {
-  create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
+  constructor(
+    @InjectModel("Order") private readonly orderModel: Model<Order>,
+  ) { }
+
+  async create(createOrderDto: CreateOrderDto) {
+
+    let amount = 0, orderObj = createOrderDto
+    createOrderDto.products.forEach((product) => {
+      amount += product.price
+    })
+
+    orderObj['amount'] = amount
+    const createdOrder = await this.orderModel.create(orderObj)
+    return createdOrder.save()
   }
 
-  findAll() {
-    return `This action returns all order`;
+  async findAll() {
+    const orders = await this.orderModel.find({})
+    return orders
+}
+
+  async findOne(id: string) {
+    try {
+      const orderObj = {
+        _id: id,
+      };
+      const order = await this.orderModel.findOne(orderObj);
+      return order;
+    } catch (err) {
+      throw new Error(err);
+    }  
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  async update(id: string, updateOrderDto: UpdateOrderDto) {
+    const order = await this.orderModel.updateOne({_id: id}, updateOrderDto);
+    return order;
   }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  async remove(id: string) {
+    try {
+      const orderObj = {
+        _id: id,
+      };
+      const order = await this.orderModel.deleteOne(orderObj);
+      return order;
+    } catch (err) {
+      throw new Error(err);
+    }  
   }
 }

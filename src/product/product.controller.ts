@@ -1,34 +1,49 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { CustomMessages } from 'src/classes/custommessages';
+import { StatusCodes } from 'src/classes/statuscode';
+import { Response } from "../classes/Response";
+import { GetProductDto } from './dto/search-product.dto';
 
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto);
+  async create(@Body() createProductDto: CreateProductDto) {
+    const product = await this.productService.create(createProductDto);
+    return new Response(StatusCodes.OK, CustomMessages.PRODUCT_CREATED, product);
   }
 
   @Get()
-  findAll() {
-    return this.productService.findAll();
+  async findAll(@Query() query: GetProductDto) {
+    const products = await this.productService.findAll(query);
+    return new Response(StatusCodes.OK, " All Products ", products);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const product = await this.productService.findOne(id);
+    if(product == null)
+      return new Response(StatusCodes.NOT_FOUND, CustomMessages.PRODUCT_NOT_FOUND, product);
+    return new Response(StatusCodes.OK, "Product ", product);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productService.update(+id, updateProductDto);
+  async update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+    const product = await this.productService.update(id, updateProductDto);
+    if(product.matchedCount == 0)
+      return new Response(StatusCodes.NOT_FOUND, CustomMessages.PRODUCT_NOT_FOUND, product);
+    return new Response(StatusCodes.OK, CustomMessages.PRODUCT_UPDATED, product); 
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productService.remove(+id);
+  async remove(@Param('id') id: string) {
+    const product = await this.productService.remove(id);
+    if(product.deletedCount == 0)
+      return new Response(StatusCodes.NOT_FOUND, CustomMessages.PRODUCT_NOT_FOUND, product);
+    return new Response(StatusCodes.OK, CustomMessages.ORDER_DELETED, product); 
   }
 }

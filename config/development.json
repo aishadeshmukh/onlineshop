@@ -1,0 +1,18 @@
+{
+  "mongo": {
+    "connectionString": "mongodb://localhost:27017/onlineshop"
+  },
+  "server": {
+    "port": 3001
+  },
+  "swagger": {
+    "title": "Online Shop",
+    "version": "1.0",
+    "tag": "onlineshop",
+    "basepath": "/onlineshop"
+  },
+  "redis": {
+    "url": "redis://127.0.0.1:6379"
+  },
+  "sessionTime": 43200
+}
